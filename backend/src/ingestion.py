@@ -1,9 +1,8 @@
-import lancedb 
-from backend.constants import DATA_PATH, VECTOR_DATABASE
+import lancedb
+from backend.constants import DATA_PATH, VECTOR_DATABASE_PATH
 from pathlib import Path
 import time
 from backend.data_models import Article
-
 
 def setup_vector_db(path):
     Path(path).mkdir(exist_ok=True)
@@ -19,6 +18,8 @@ def ingest_docs_to_vector_db(table):
             content = f.read()
 
         doc_id = file.stem
+
+        # idempotent
         table.delete(f"doc_id = '{doc_id}'")
 
         table.add(
@@ -35,3 +36,7 @@ def ingest_docs_to_vector_db(table):
         print(table.to_pandas().shape)
         print(table.to_pandas()["filename"])
         time.sleep(10)
+
+if __name__ == "__main__":
+    vector_db = setup_vector_db(VECTOR_DATABASE_PATH)
+    ingest_docs_to_vector_db(vector_db["articles"])
